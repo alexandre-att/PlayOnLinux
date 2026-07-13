@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="{% static 'js/javascript.js' %}"></script>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <h1>Instruções</h1>
+
+    <h2>Redirecionar as portas</h2>
+    From: https://serverfault.com/questions/112795/how-to-run-a-server-on-port-80-as-a-normal-user-on-linux
+
+    <h3>Aplicar as regras</h3>
+    Comandos:
+    <pre>
+    $ <span>sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    $ <span>sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    </pre>
+
+    <h3>Remover as regras:</h3>
+    Comando:
+    <pre>
+    $ <span>sudo iptables -t nat --line-numbers -n -L</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    $ <span>sudo iptables -t nat -D PREROUTING &lt;num&gt;</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    </pre>
+
+    <h3>Reconfigurar DNS</h3>
+    Editar o arquivo /etc/hosts
+    <pre>
+    $ <span>sudo vi /etc/hosts</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    </pre>
+
+    e incluir o seguinte conteúdo:
+    <pre>
+<span># Para o Play on Linux funcionar<br>127.0.0.1       repository.playonlinux.com</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
+    </pre>
+
+    <p>
+    O diretório <code>resources</code> contém os scripts e os arquivos.
+    Procurar o script POL_ correspondente ao arquivo que deu erro.
+    Remover o endereço original, como no exemplo abaixo:
+    </p>
+    <pre>
+        #POL_Download_Resource "https://web.archive.org/web/20190122095451if_/http://download.microsoft.com/download/e/a/f/eafb8ee7-667d-4e30-bb39-4694b5b3006f/msxml6_x86.msi" "85a5571258de322458f288b94ee28cfb"
+    </pre>
+    <p>
+    E colocar no seguinte formato:
+    </p>
+    <pre>
+        POL_Download_Resource "http://localhost/download/msxml6_x86.msi" "85a5571258de322458f288b94ee28cfb"
+    </pre>
+
+
+    <h1>A partir daqui, nada disso é necessário</h1>
+    <h2>Redirecionar as portas</h2>
+    From: https://serverfault.com/questions/112795/how-to-run-a-server-on-port-80-as-a-normal-user-on-linux
+    <h3>Aplicar as regras</h3>
+    Comandos:
+    <pre>
+    $ sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+    $ sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8443
+    $ sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8080
+    $ sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 443 -j REDIRECT --to-ports 8443
+    </pre>
+    <h3>Remover as regras:</h3>
+    Comando:
+    <pre>
+    $ sudo iptables -t nat --line-numbers -n –L
+    $ sudo iptables -t nat -D PREROUTING <num>
+    </pre>
+
+    <h2>Configurar o servidor Django</h2>
+    Requirements.txt
+    <pre>
+    django
+    django-extensions
+    Werkzeug
+    pyOpenSSL
+    django-sslserver
+    </pre>
+    settings.py
+    <pre>
+    import os
+
+    INSTALLED_APPS = [
+        "django.contrib.admin",
+        "django.contrib.auth",
+        "django.contrib.contenttypes",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+        'PlayOnLinux',
+        'django_extensions',
+        'sslserver',
+    ]
+
+    MIDDLEWARE = [
+        "django.middleware.security.SecurityMiddleware",
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.middleware.common.CommonMiddleware",
+        "django.middleware.csrf.CsrfViewMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "django.contrib.messages.middleware.MessageMiddleware",
+        "django.middleware.clickjacking.XFrameOptionsMiddleware",
+        'sslserver.middleware.SSLServerMiddleware',
+    ]
+
+    if DEBUG:
+        SSL_CERTIFICATE = os.path.join(BASE_DIR, 'cert.pem')
+        SSL_PRIVATE_KEY = os.path.join(BASE_DIR, 'key.pem')
+    </pre>
+
+    <h2>Criar uma CA</h2>
+    <h3>Criar o Diretório para a CA:</h3>
+    <pre>
+    $ sudo mkdir /etc/myCA
+    $ cd /etc/myCA
+    </pre>
+
+    <h3>Criar o arquivo de configuração</h3>
+    <pre>$ sudo vi openssl.cnf</pre>
+    Cole o seguinte conteúdo no arquivo:
+    <pre>
+    [ ca ]
+    default_ca = myCA
+
+    [ myCA ]
+    dir = /etc/myCA
+    new_certs_dir = $dir/newcerts
+    unique_subject = no
+    certificate = $dir/cacert.pem
+    database = $dir/index.txt
+    serial = $dir/serial
+    private_key = $dir/private/cakey.pem
+    default_days = 3650
+    default_md = sha256
+    policy = myCA_policy
+    x509_extensions = myCA_extensions
+
+    [req]
+    default_md = sha256
+    prompt = no
+    distinguished_name = req_distinguished_name
+    req_extensions = myCA_extensions
+
+    [req_distinguished_name]
+    C = BR
+    ST = Rio de Janeiro
+    L = Rio de Janeiro
+    O = Casa
+    OU = Escritorio
+    CN = meslin.com.br
+    emailAddress = alexandre@meslin.com.br
+
+    [ myCA_policy ]
+    commonName = supplied
+    stateOrProvinceName = supplied
+    countryName = optional
+    emailAddress = optional
+    organizationName = supplied
+    organizationalUnitName = optional
+
+    [ myCA_extensions ]
+    basicConstraints = critical, CA:true
+    keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+    </pre>
+
+    <h3>Criar Estrutura de Diretórios e Arquivos Iniciais:</h3>
+    <pre>
+    $ sudo mkdir newcerts
+    $ sudo touch index.txt
+    $ sudo echo '01' | sudo tee serial
+    $ sudo mkdir private
+    </pre>
+
+    <h3>Gerar a Chave Privada e o Certificado da CA:</h3>
+    <pre>
+    $ sudo openssl genpkey -algorithm RSA -out private/cakey.pem
+    $ sudo openssl req -x509 -new -key private/cakey.pem -out cacert.pem -config openssl.cnf
+    </pre>
+
+    <h3>Criar um certificado para assinar (.csr)</h3>
+    <pre>
+    $ cd /etc/myCA
+    $ sudo openssl req -newkey rsa:2048 -keyout key.pem -out cert.csr -nodes -subj "/C=BR/ST=Rio de Janeiro/L=Rio de Janeiro/O=Casa/OU=Casa/CN=meslin.com.br"
+    </pre>
+
+    <h3>Assinar o certificado</h3>
+    <pre>
+    $ cd /etc/myCA
+    $ sudo openssl x509 -req -in cert.csr -CA cacert.pem -CAkey private/cakey.pem -CAcreateserial -out cert.pem -days 365 -sha256
+    </pre>
+
+    Comandos
+    <pre>
+    $ sudo apt install python3 python3-pip
+    $ sudo pip3 install -r requirements.txt
+    $ python3 manage.py runserver_plus --cert-file cert.pem --key-file key.pem
+    </pre>
+    
+</body>
+</html>
+
