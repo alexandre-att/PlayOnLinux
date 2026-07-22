@@ -14,28 +14,34 @@
     <h1>Instruções</h1>
 
     <h2>Redirecionar as portas</h2>
-    From: https://serverfault.com/questions/112795/how-to-run-a-server-on-port-80-as-a-normal-user-on-linux
+    <code>https://serverfault.com/questions/112795/how-to-run-a-server-on-port-80-as-a-normal-user-on-linux</code>
 
     <h3>Aplicar as regras</h3>
-    Comandos:
+
+    <p>
+        Antes de começar, 
+        redirecione a porta 80 para a porta 8000.
+    </p>
+
+    <p>Comandos:</p>
     <pre>
     $ <span>sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
     $ <span>sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
     </pre>
 
     <h3>Remover as regras:</h3>
-    Comando:
+    <p>Comando:</p>
     <pre>
     $ <span>sudo iptables -t nat --line-numbers -n -L</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
     $ <span>sudo iptables -t nat -D PREROUTING &lt;num&gt;</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
     </pre>
 
     <h3>Reconfigurar DNS</h3>
-    Editar o arquivo /etc/hosts
+    <p>Editar o arquivo /etc/hosts</p>
     <pre>
     $ <span>sudo vi /etc/hosts</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
     </pre>
-
+    <br>
     e incluir o seguinte conteúdo:
     <pre>
 <span># Para o Play on Linux funcionar<br>127.0.0.1       repository.playonlinux.com</span> <img class="copyButton" src="{%static 'images/copy.png'%}" alt="copy" width="12">
@@ -61,7 +67,7 @@
     <h2>Redirecionar as portas</h2>
     From: https://serverfault.com/questions/112795/how-to-run-a-server-on-port-80-as-a-normal-user-on-linux
     <h3>Aplicar as regras</h3>
-    Comandos:
+    <p>Para aplicar as regras de redirecionamento, execute os seguintes comandos:</p>
     <pre>
     $ sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
     $ sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8443
@@ -69,14 +75,14 @@
     $ sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 443 -j REDIRECT --to-ports 8443
     </pre>
     <h3>Remover as regras:</h3>
-    Comando:
+    <p>Comando:</p>
     <pre>
     $ sudo iptables -t nat --line-numbers -n –L
     $ sudo iptables -t nat -D PREROUTING <num>
     </pre>
 
     <h2>Configurar o servidor Django</h2>
-    Requirements.txt
+    <p>Requirements.txt</p>
     <pre>
     django
     django-extensions
@@ -84,7 +90,7 @@
     pyOpenSSL
     django-sslserver
     </pre>
-    settings.py
+    <p>settings.py</p>
     <pre>
     import os
 
@@ -125,7 +131,7 @@
 
     <h3>Criar o arquivo de configuração</h3>
     <pre>$ sudo vi openssl.cnf</pre>
-    Cole o seguinte conteúdo no arquivo:
+    <p>Cole o seguinte conteúdo no arquivo:</p>
     <pre>
     [ ca ]
     default_ca = myCA
@@ -197,7 +203,7 @@
     $ sudo openssl x509 -req -in cert.csr -CA cacert.pem -CAkey private/cakey.pem -CAcreateserial -out cert.pem -days 365 -sha256
     </pre>
 
-    Comandos
+    <h3>Comandos</h3>
     <pre>
     $ sudo apt install python3 python3-pip
     $ sudo pip3 install -r requirements.txt
@@ -206,4 +212,3 @@
     
 </body>
 </html>
-

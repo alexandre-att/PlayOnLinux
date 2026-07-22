@@ -41,7 +41,7 @@ def get_description(request):
 
 def get_file(request):
     version = request.GET.get('version')
-    if(version.lower()!='playonlinux-4.3.4'):
+    if(version.lower()!='playonlinux-4.3.4' and version.lower()!='playonlinux-4.4'):
         print('\n*****[get_file] version não cadastrada:', version)
         return HttpResponse(None)
     id = request.GET.get('id')
